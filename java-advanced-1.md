@@ -990,6 +990,367 @@ Result: 9
 **Q4: How does a lambda expression handle return values?**
 **A:** If the lambda's body is a single expression (without curly braces), the value of that expression is implicitly returned. If the body is a block of code enclosed in curly braces, you must use an explicit `return` statement to return a value.
 
+---
+
+Of course. Exception handling is a fundamental skill for writing robust Java applications. Here is a distilled summary of the concepts from the videos.
+
+***
+
+### Core Concept: What is an Exception?
+
+An **exception** is an error that occurs at **runtime**, disrupting the normal flow of a program's execution. Unlike compile-time errors (syntax mistakes) or logical errors (bugs), exceptions often arise from conditions that the programmer cannot predict at compile time, such as a file not being found, a network connection being lost, or invalid user input.
+
+The goal of exception handling is not to prevent all errors but to **handle them gracefully** so that the application can recover or terminate cleanly instead of crashing.
+
+### The `try-catch` Block: Handling Exceptions
+
+The `try-catch` block is the primary mechanism for handling exceptions in Java.
+
+* **`try` block:** You place "critical statements"—code that you suspect might throw an exception—inside the `try` block. This tells Java, "Attempt to execute this code, but be prepared for an error."
+* **`catch` block:** This block contains the recovery code. It is only executed if an exception of a matching type occurs within the `try` block.
+
+```java
+try {
+    // Critical code that might fail
+    int result = 10 / 0; // This will throw an ArithmeticException
+} catch (Exception e) {
+    // Code to handle the error
+    System.out.println("An error occurred!");
+}
+System.out.println("Program continues..."); // This line will now be reached
+```
+
+### Handling Specific Exceptions
+
+Using a single, generic `catch (Exception e)` block is often not helpful because you don't know the specific problem. A better practice is to use **multiple `catch` blocks** to handle different, specific exception types.
+
+Common exceptions include:
+* `ArithmeticException`: For math errors, like division by zero.
+* `ArrayIndexOutOfBoundsException`: For accessing an array with an invalid index.
+* `NullPointerException`: For trying to call a method on a `null` reference.
+
+### The Exception Hierarchy and `catch` Order
+
+Exceptions in Java have an inheritance hierarchy (e.g., `ArithmeticException` is a subclass of `RuntimeException`, which is a subclass of `Exception`). This leads to a critical rule for ordering `catch` blocks:
+
+> You **must** order `catch` blocks from the **most specific** (child class) to the **most general** (parent class).
+
+If you place a general `catch (Exception e)` block before a specific one like `catch (ArithmeticException ae)`, the general block will catch everything, making the specific block "unreachable." This will result in a **compile-time error**.
+
+### Code Example: Multiple `catch` Blocks
+
+This example demonstrates how to handle different potential errors from a single `try` block.
+
+```java
+public class Demo {
+    public static void main(String[] args) {
+        try {
+            int[] a = new int[5];
+            // a[5] = 10; // This would cause ArrayIndexOutOfBoundsException
+            int result = 10 / 0; // This will cause ArithmeticException
+            System.out.println("This message will not be printed.");
+        }
+        // 1. Most specific catch block
+        catch (ArithmeticException e) {
+            System.out.println("Error: Cannot divide by zero.");
+        }
+        // 2. Another specific catch block
+        catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Error: Array index is out of bounds.");
+        }
+        // 3. Most general catch block (must be last)
+        catch (Exception e) {
+            System.out.println("An unknown error occurred.");
+        }
+
+        System.out.println("Program finished safely.");
+    }
+}
+```
+**Output:**
+```
+Error: Cannot divide by zero.
+Program finished safely.
+```
+
+***
+### ✍️ Interview Q&A
+
+**Q1: What is the difference between an Error and an Exception in Java?**
+**A:** Both are subclasses of `Throwable`. An **Error** typically represents a critical, unrecoverable problem with the JVM itself (e.g., `OutOfMemoryError`), and applications are not expected to handle them. An **Exception** represents a condition that a well-written application might want to catch and handle (e.g., `NullPointerException` or `IOException`).
+
+**Q2: What is the purpose of the `try-catch` block?**
+**A:** It's the core mechanism for handling exceptions. The `try` block encloses code that might throw an exception. If an exception occurs, the `catch` block "catches" it and executes code to handle the error gracefully, preventing the program from crashing.
+
+**Q3: What happens if you put a `catch` block for `Exception` before a `catch` block for `ArithmeticException`?**
+**A:** You will get a compile-time error. The `Exception` class is the superclass for `ArithmeticException`. A `catch` block for `Exception` will catch all its subclasses, making the more specific `catch` block for `ArithmeticException` unreachable. The rule is to always order `catch` blocks from most specific to most general.
+
+**Q4: Can a `try` block exist without a `catch` block?**
+**A:** Yes, if it is followed by a `finally` block. The `try-finally` structure is used to ensure that cleanup code in the `finally` block is executed, regardless of whether an exception occurred in the `try` block. However, this structure does not handle the exception; it will still be propagated up the call stack.
 
 ---
 
+Of course. Understanding the exception hierarchy and how to manually throw exceptions is key to writing robust code. Here is a distilled summary of the concepts from the videos.
+
+***
+
+### The Java Exception Hierarchy
+
+In Java, all error and exception types are subclasses of the `Throwable` class. `Throwable` has two main children, creating two distinct branches:
+
+1.  **`Error`**: This branch represents critical, unrecoverable problems with the Java Virtual Machine (JVM) or its environment.
+    * **Examples:** `OutOfMemoryError`, `StackOverflowError`.
+    * **Handling:** You are **not** expected to catch or handle these. When an `Error` occurs, the application is typically unrecoverable and will crash.
+
+2.  **`Exception`**: This branch represents errors that are caused by the application itself and can potentially be recovered from. This is where all application-level exception handling focuses.
+
+### Checked vs. Unchecked Exceptions
+
+The `Exception` class itself is the parent of two important categories:
+
+#### Checked Exceptions
+* **What they are:** Exceptions that are direct subclasses of `Exception` (but not `RuntimeException`). They typically represent errors related to external resources (e.g., files, networks).
+* **The Rule:** The compiler **forces** you to handle them. You *must* either wrap the code in a `try-catch` block or declare the exception in the method signature using the `throws` keyword.
+* **Examples:** `IOException`, `SQLException`, `ClassNotFoundException`.
+
+#### Unchecked Exceptions (Runtime Exceptions)
+* **What they are:** All exceptions that are subclasses of `RuntimeException`. They typically represent programming errors.
+* **The Rule:** The compiler does **not** force you to handle them. Handling is optional but often good practice.
+* **Examples:** `NullPointerException`, `ArithmeticException`, `ArrayIndexOutOfBoundsException`, `IllegalArgumentException`.
+
+**Hierarchy Diagram:**
+```
+                     Object
+                       |
+                    Throwable
+                   /         \
+                Error       Exception
+                             /       \
+      (OutOfMemoryError)  IOException   RuntimeException
+      (StackOverflowError)  SQLException     |
+                                          /       \
+                        NullPointerException   ArithmeticException
+```
+
+### The `throw` Keyword
+
+While many exceptions are thrown automatically by the JVM (e.g., dividing by zero), you can also manually throw an exception using the `throw` keyword.
+
+* **Purpose:** To signal an error condition based on your application's specific business logic.
+* **How it works:** You create an instance of an exception object and then use `throw` to propel it up the call stack.
+
+```java
+public void withdraw(double amount) {
+    if (amount > balance) {
+        // Manually create and throw an exception because of a business rule violation.
+        throw new IllegalArgumentException("Insufficient funds for withdrawal.");
+    }
+    balance -= amount;
+}
+```
+The `catch` block that receives this exception can then access the custom message "Insufficient funds...".
+
+***
+
+### ✍️ Interview Q&A
+
+**Q1: What is the difference between an `Error` and an `Exception` in Java?**
+**A:** An **`Error`** represents a critical, unrecoverable JVM problem (like `OutOfMemoryError`) that applications are not expected to handle. An **`Exception`** represents a potentially recoverable problem caused by the application (like `NullPointerException`) that a robust program should handle. Both are subclasses of `Throwable`.
+
+**Q2: Explain the difference between checked and unchecked exceptions.**
+**A:** **Checked exceptions** are checked by the compiler, which forces the programmer to handle them with a `try-catch` block or declare them with `throws`. They usually relate to external conditions. **Unchecked exceptions** (subclasses of `RuntimeException`) are not checked by the compiler, and handling them is optional. They usually relate to programming mistakes.
+
+**Q3: What is the purpose of the `throw` keyword?**
+**A:** The `throw` keyword is used to manually throw an exception object from within your code. This is useful for signaling an error based on your application's specific business rules, rather than waiting for a low-level runtime error from the JVM.
+
+**Q4: What is the difference between `throw` and `throws`?**
+**A:** `throw` is a statement used **inside a method** to actually launch an exception object. `throws` is a keyword used in a **method's signature** to declare that the method might throw certain checked exceptions, delegating the handling responsibility to the method that calls it.
+
+---
+
+Of course. Creating custom exceptions and understanding how to declare them with the `throws` keyword are important parts of Java's error-handling mechanism. Here is a distilled summary.
+
+***
+
+### Custom Exceptions
+
+Sometimes, Java's built-in exceptions (`NullPointerException`, `ArithmeticException`, etc.) aren't specific enough for your application's business logic. In such cases, you can create your own **custom exception** classes.
+
+**How to Create a Custom Exception:**
+1.  **Create a Class:** Define a new class with a name that clearly describes the error (e.g., `InsufficientFundsException`).
+2.  **Extend `Exception` or `RuntimeException`:**
+    * Extend `Exception` to create a **checked exception** (the compiler will force callers to handle it).
+    * Extend `RuntimeException` to create an **unchecked exception** (callers are not forced to handle it).
+3.  **Add a Constructor:** Create a constructor that accepts a `String` message. Inside this constructor, call `super(message)` to pass the error message to the parent `Exception` class.
+
+**Example:**
+```java
+// 1. Create your custom exception class
+class MyException extends Exception {
+    // 2. Add the constructor that calls the parent's constructor
+    public MyException(String message) {
+        super(message);
+    }
+}
+```
+You can then use this in your code like any other exception: `throw new MyException("This is a custom error.");`
+
+### The `throws` Keyword (Ducking an Exception)
+
+The **`throws`** keyword is used in a method's signature. It declares that the method might throw a **checked exception** that it does not handle internally.
+
+* **Purpose:** It "ducks" the exception, passing the responsibility of handling it to whatever method calls it.
+* **The Contract:** If a method `doSomething()` is declared with `throws IOException`, any code that calls `doSomething()` is now required by the compiler to either:
+    1.  Handle the `IOException` with a `try-catch` block.
+    2.  Also declare `throws IOException` in its own signature, passing the responsibility further up the call stack.
+
+### `throw` vs. `throws`: A Key Distinction
+
+This is a very common interview question.
+
+| Keyword | Usage | Purpose | Example |
+| :--- | :--- | :--- | :--- |
+| **`throw`** | **Inside a method body** | To actually **launch an exception** object. It's an action. | `throw new MyException("Error!");` |
+| **`throws`** | **In a method signature** | To **declare** that a method might throw an exception. It's a warning/contract. | `public void myMethod() throws MyException` |
+
+### Code Example: Putting it Together
+
+This example shows a method that "ducks" a checked exception, forcing the caller (`main`) to handle it.
+
+```java
+// A method that can throw a checked exception and DECLARES it
+public void readFile() throws java.io.FileNotFoundException {
+    // Some code that tries to read a file...
+    // If the file doesn't exist, the JVM throws FileNotFoundException.
+    // This method does NOT handle it; it passes the responsibility up.
+    System.out.println("Reading file...");
+    throw new java.io.FileNotFoundException(); // Simulating the error
+}
+
+public static void main(String[] args) {
+    Demo d = new Demo();
+
+    // The main method MUST handle the exception that readFile() throws.
+    try {
+        d.readFile();
+    } catch (java.io.FileNotFoundException e) {
+        System.out.println("Error: The file was not found. Please check the path.");
+    }
+}
+```
+
+***
+
+### ✍️ Interview Q&A
+
+**Q1: How do you create a custom exception in Java?**
+**A:** You create a new class that extends either `Exception` (for a checked exception) or `RuntimeException` (for an unchecked exception). It's standard practice to provide a constructor that takes a `String` message and passes it to the superclass constructor using `super(message)`.
+
+**Q2: What is the purpose of the `throws` keyword?**
+**A:** The `throws` keyword is used in a method's signature to declare that the method might throw one or more checked exceptions. It delegates the responsibility of handling the exception to the calling method.
+
+**Q3: Explain the difference between `throw` and `throws`.**
+**A:** `throw` is a statement used **inside a method** to actually launch an exception object. `throws` is a keyword used in the **method's signature** to declare the types of checked exceptions that the method might pass up the call stack. `throw` is an action; `throws` is a declaration.
+
+**Q4: Is it good practice to declare `throws Exception` on the `main` method?**
+**A:** No, it is generally considered bad practice. The `main` method is the entry point of the application. If it throws an exception to its caller (the JVM), the program will terminate abruptly. The `main` method is often the last place where exceptions should be caught and handled gracefully to provide a good user experience.
+
+---
+
+Of course. Taking user input and properly managing resources are essential skills. Here is a distilled summary of the concepts from the videos.
+
+***
+
+### Taking User Input in Java
+
+While Java has several ways to read user input, there are two primary approaches you should know.
+
+#### 1. `BufferedReader` (The Classic Way)
+This was the standard way for many years. It's efficient for reading large amounts of text.
+
+* **Setup:** It requires wrapping `System.in` (the standard input stream) in two other classes.
+    ```java
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    ```
+* **Reading:** You use the `.readLine()` method, which always returns a `String`.
+* **Parsing:** You must manually convert the `String` to the desired data type (e.g., using `Integer.parseInt()`).
+
+#### 2. `Scanner` (The Modern Way)
+Introduced in Java 1.5, the `Scanner` class was designed to simplify reading input.
+
+* **Setup:** The setup is much simpler.
+    ```java
+    Scanner scanner = new Scanner(System.in);
+    ```
+* **Reading:** It has convenient methods like `.nextInt()`, `.nextDouble()`, and `.nextLine()` that read and parse the data in one step.
+* **Recommendation:** For most console applications, `Scanner` is the preferred choice due to its simplicity.
+
+### Resource Management: `finally` and Try-with-Resources
+
+Input streams like `BufferedReader` and `Scanner` are considered **resources** that must be closed after use to prevent memory leaks.
+
+#### The `finally` Block
+* **Purpose:** A `finally` block in a `try-catch` structure contains code that is **guaranteed to execute**, regardless of whether an exception was thrown or not.
+* **Primary Use Case:** Before Java 7, the `finally` block was the standard place to call the `.close()` method on a resource, ensuring that it was always closed.
+
+```java
+// Pre-Java 7 style
+Scanner scanner = null;
+try {
+    scanner = new Scanner(System.in);
+    // ... use scanner ...
+} catch (Exception e) {
+    // ... handle error ...
+} finally {
+    if (scanner != null) {
+        scanner.close(); // Ensure the resource is closed
+    }
+}
+```
+
+#### Try-with-Resources (The Best Practice)
+Introduced in Java 7, this statement automates resource management, making code cleaner and safer.
+
+* **How it works:** You declare and initialize your resource inside parentheses after the `try` keyword. Any resource that implements the `AutoCloseable` interface will be **closed automatically** when the `try` block is exited.
+* **Benefit:** It eliminates the need for an explicit `finally` block just to close resources.
+
+### Code Example: Modern Input and Resource Management
+
+This example demonstrates the modern best practice using `Scanner` and a `try-with-resources` statement.
+
+```java
+import java.util.Scanner;
+import java.util.InputMismatchException;
+
+public class Demo {
+    public static void main(String[] args) {
+        System.out.print("Enter a number: ");
+
+        // Declare the Scanner in the try-with-resources statement
+        try (Scanner scanner = new Scanner(System.in)) {
+            int num = scanner.nextInt();
+            System.out.println("You entered: " + num);
+        } catch (InputMismatchException e) {
+            System.err.println("Invalid input. Please enter an integer.");
+        }
+        // The 'scanner' resource is automatically closed here, no 'finally' needed.
+    }
+}
+```
+
+***
+### ✍️ Interview Q&A
+
+**Q1: What is the difference between `Scanner` and `BufferedReader` for reading input?**
+**A:** `BufferedReader` is synchronized and faster for reading large blocks of text, but it only reads strings, requiring manual parsing for other types. `Scanner` is simpler to use, with built-in methods like `.nextInt()` that handle parsing automatically, but it is not synchronized and can be slower for bulk reading.
+
+**Q2: What is the purpose of the `finally` block?**
+**A:** The `finally` block is used to execute code that must run regardless of whether an exception occurred in the `try` block. Its primary use case is for cleanup operations, most importantly closing resources like files or network connections to prevent leaks.
+
+**Q3: What is the "try-with-resources" statement and what problem does it solve?**
+**A:** It's a `try` statement that declares one or more resources. It ensures that each resource is closed at the end of the statement. This feature, introduced in Java 7, automates resource management and eliminates the need for verbose `finally` blocks, making the code safer and more readable.
+
+**Q4: Can a `try` block exist without a `catch` block?**
+**A:** Yes, in two scenarios:
+1.  **`try-finally`**: This ensures the `finally` block executes for cleanup, but it does not handle any exceptions.
+2.  **`try-with-resources`**: The resource is managed automatically. A `catch` block is optional if you are not handling specific exceptions and are instead letting the method `throw` them.
